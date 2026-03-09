@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cheltenham Festival 2026 — Day 1 Predictor</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --gold: #c9a84c;
+  --gold-light: #e8d48b;
+  --dark: #0d1117;
+  --card: #161b22;
+  --card-hover: #1c2333;
+  --border: #30363d;
+  --text: #e6edf3;
+  --text-muted: #8b949e;
+  --green: #3fb950;
+  --green-bg: rgba(63,185,80,0.12);
+  --red: #f85149;
+  --red-bg: rgba(248,81,73,0.12);
+  --blue: #58a6ff;
+  --blue-bg: rgba(88,166,255,0.12);
+  --amber: #d29922;
+  --amber-bg: rgba(210,153,34,0.12);
+  --purple: #bc8cff;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:var(--dark); color:var(--text); font-family:'DM Sans',sans-serif; min-height:100vh; }
+.hero { background:linear-gradient(135deg,#0d1117 0%,#1a1a2e 50%,#16213e 100%); border-bottom:1px solid var(--border); padding:2rem 1.5rem 1.5rem; text-align:center; position:relative; overflow:hidden; }
+.hero::before { content:''; position:absolute; top:-50%; left:-50%; width:200%; height:200%; background:radial-gradient(circle at 30% 40%,rgba(201,168,76,0.06) 0%,transparent 50%); pointer-events:none; }
+.hero h1 { font-family:'Playfair Display',serif; font-weight:900; font-size:clamp(1.8rem,4vw,2.8rem); color:var(--gold); letter-spacing:-0.02em; position:relative; }
+.hero .subtitle { color:var(--text-muted); margin-top:0.4rem; font-size:0.95rem; }
+.conditions { display:flex; flex-wrap:wrap; justify-content:center; gap:0.6rem; margin-top:1rem; }
+.cond-badge { background:var(--card); border:1px solid var(--border); border-radius:8px; padding:0.4rem 0.8rem; font-size:0.8rem; display:flex; align-items:center; gap:0.4rem; }
+.cond-badge .dot { width:8px; height:8px; border-radius:50%; }
+.cond-badge .dot.green { background:var(--green); }
+.cond-badge .dot.amber { background:var(--amber); }
+.cond-badge .dot.blue { background:var(--blue); }
+.model-record { background:var(--card); border:1px solid var(--border); border-radius:10px; margin:1rem auto; max-width:700px; padding:0.8rem 1rem; display:flex; flex-wrap:wrap; justify-content:center; gap:1rem; font-size:0.82rem; }
+.model-stat { text-align:center; }
+.model-stat .val { font-family:'JetBrains Mono',monospace; font-weight:700; font-size:1.1rem; color:var(--gold); }
+.model-stat .lbl { color:var(--text-muted); font-size:0.72rem; text-transform:uppercase; letter-spacing:0.05em; }
+.controls { display:flex; flex-wrap:wrap; justify-content:center; gap:0.5rem; padding:1rem 1.5rem 0.5rem; position:sticky; top:0; z-index:10; background:var(--dark); border-bottom:1px solid var(--border); }
+.controls button { background:var(--card); color:var(--text-muted); border:1px solid var(--border); border-radius:8px; padding:0.45rem 0.9rem; font-size:0.8rem; font-family:'DM Sans',sans-serif; font-weight:600; cursor:pointer; transition:all 0.2s; }
+.controls button:hover { border-color:var(--gold); color:var(--text); }
+.controls button.active { background:var(--gold); color:var(--dark); border-color:var(--gold); }
+.race-nav { display:flex; flex-wrap:wrap; justify-content:center; gap:0.4rem; padding:0.8rem 1.5rem; }
+.race-nav button { background:var(--card); color:var(--text-muted); border:1px solid var(--border); border-radius:8px; padding:0.4rem 0.7rem; font-size:0.78rem; font-family:'DM Sans',sans-serif; font-weight:600; cursor:pointer; transition:all 0.2s; }
+.race-nav button:hover { border-color:var(--gold); color:var(--text); }
+.race-nav button.active { background:linear-gradient(135deg,var(--gold),#b8943f); color:var(--dark); border-color:var(--gold); }
+.race-section { max-width:1100px; margin:0 auto; padding:0 1rem 2rem; }
+.race-header { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:1.2rem 1.5rem; margin-bottom:1rem; }
+.race-header .race-num { font-family:'JetBrains Mono',monospace; font-size:0.75rem; color:var(--gold); text-transform:uppercase; letter-spacing:0.1em; }
+.race-header h2 { font-family:'Playfair Display',serif; font-weight:700; font-size:1.4rem; margin:0.3rem 0; }
+.race-header .race-meta { display:flex; flex-wrap:wrap; gap:0.8rem; font-size:0.82rem; color:var(--text-muted); margin-top:0.3rem; }
+.race-header .race-desc { font-size:0.85rem; color:var(--text-muted); margin-top:0.6rem; line-height:1.5; }
+.confidence { display:inline-block; font-size:0.7rem; font-weight:700; padding:0.2rem 0.5rem; border-radius:4px; text-transform:uppercase; letter-spacing:0.05em; margin-left:0.5rem; vertical-align:middle; }
+.confidence.high { background:var(--green-bg); color:var(--green); }
+.confidence.medium { background:var(--amber-bg); color:var(--amber); }
+.confidence.low { background:var(--red-bg); color:var(--red); }
+.horse-card { background:var(--card); border:1px solid var(--border); border-radius:10px; padding:1rem 1.2rem; margin-bottom:0.6rem; transition:all 0.2s; position:relative; overflow:hidden; }
+.horse-card:hover { border-color:var(--gold); background:var(--card-hover); }
+.horse-card.top1 { border-left:3px solid var(--gold); }
+.horse-card.top2 { border-left:3px solid #aaa; }
+.horse-card.top3 { border-left:3px solid #cd7f32; }
+.horse-row { display:flex; align-items:center; gap:0.8rem; flex-wrap:wrap; }
+.horse-rank { font-family:'JetBrains Mono',monospace; font-weight:700; font-size:1.2rem; min-width:2rem; text-align:center; }
+.horse-rank.r1 { color:var(--gold); }
+.horse-rank.r2 { color:#aaa; }
+.horse-rank.r3 { color:#cd7f32; }
+.horse-info { flex:1; min-width:180px; }
+.horse-name { font-weight:700; font-size:1.05rem; }
+.horse-details { font-size:0.78rem; color:var(--text-muted); margin-top:0.15rem; }
+.horse-metrics { display:flex; gap:0.5rem; flex-wrap:wrap; align-items:center; }
+.metric-pill { font-family:'JetBrains Mono',monospace; font-size:0.75rem; font-weight:600; padding:0.25rem 0.5rem; border-radius:6px; }
+.metric-pill.score { background:linear-gradient(135deg,rgba(201,168,76,0.2),rgba(201,168,76,0.08)); color:var(--gold); border:1px solid rgba(201,168,76,0.3); }
+.metric-pill.odds { background:var(--blue-bg); color:var(--blue); border:1px solid rgba(88,166,255,0.2); }
+.metric-pill.gp { border:1px solid var(--border); }
+.metric-pill.gp.good { background:var(--green-bg); color:var(--green); border-color:rgba(63,185,80,0.3); }
+.metric-pill.gp.ok { background:var(--amber-bg); color:var(--amber); border-color:rgba(210,153,34,0.3); }
+.metric-pill.gp.bad { background:var(--red-bg); color:var(--red); border-color:rgba(248,81,73,0.3); }
+.nap-badge { background:linear-gradient(135deg,var(--gold),#b8943f); color:var(--dark); font-size:0.65rem; font-weight:700; padding:0.15rem 0.45rem; border-radius:4px; text-transform:uppercase; letter-spacing:0.05em; }
+.horse-factors { margin-top:0.6rem; padding-top:0.6rem; border-top:1px solid var(--border); display:grid; grid-template-columns:1fr 1fr; gap:0.3rem 1rem; font-size:0.78rem; }
+.factor { display:flex; align-items:flex-start; gap:0.3rem; line-height:1.4; }
+.factor .icon { flex-shrink:0; margin-top:0.1rem; }
+.factor.pro .icon { color:var(--green); }
+.factor.con .icon { color:var(--red); }
+.trends-panel { background:var(--card); border:1px solid var(--border); border-radius:10px; padding:1rem 1.2rem; margin-bottom:1rem; }
+.trends-panel h3 { font-size:0.85rem; color:var(--gold); margin-bottom:0.5rem; font-family:'JetBrains Mono',monospace; text-transform:uppercase; letter-spacing:0.05em; }
+.trends-panel ul { list-style:none; font-size:0.82rem; color:var(--text-muted); }
+.trends-panel li { padding:0.2rem 0; padding-left:1rem; position:relative; }
+.trends-panel li::before { content:'→'; position:absolute; left:0; color:var(--gold); }
+.hidden { display:none !important; }
+.divider { text-align:center; color:var(--text-muted); font-size:0.8rem; padding:0.5rem; border-top:1px dashed var(--border); margin-top:0.5rem; }
+@media(max-width:600px) {
+  .horse-factors { grid-template-columns:1fr; }
+  .horse-metrics { gap:0.3rem; }
+  .hero h1 { font-size:1.6rem; }
+}
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <h1>Cheltenham Festival 2026</h1>
+  <div class="subtitle">Day 1 — Champion Day · Tuesday 10th March · Old Course</div>
+  <div class="conditions">
+    <div class="cond-badge"><span class="dot green"></span>Going: Good to Soft, Good in places</div>
+    <div class="cond-badge"><span class="dot amber"></span>Selective watering applied</div>
+    <div class="cond-badge"><span class="dot blue"></span>12°C · Overcast · Chance of shower PM</div>
+    <div class="cond-badge"><span class="dot green"></span>Wind: 15-28mph</div>
+  </div>
+  <div class="model-record">
+    <div class="model-stat"><div class="val">27%</div><div class="lbl">Winners (3/11)</div></div>
+    <div class="model-stat"><div class="val">73%</div><div class="lbl">Winner in Top 3</div></div>
+    <div class="model-stat"><div class="val">100%</div><div class="lbl">≥1 Pick Placed</div></div>
+    <div class="model-stat"><div class="val">v2.1</div><div class="lbl">Model (Post-Taunton)</div></div>
+  </div>
+</div>
+
+<div class="controls" id="controls">
+  <button class="active" onclick="setSort('score')">Sort: Score</button>
+  <button onclick="setSort('odds')">Sort: Odds</button>
+  <button onclick="toggleTrends()">Trends</button>
+  <button onclick="toggleFactors()">Factors</button>
+</div>
+
+<div class="race-nav" id="raceNav"></div>
+<div class="race-section" id="raceContent"></div>
+
+<script>
+const RACES = [
+  {
+    id: 'supreme',
+    num: 'Race 1 · 1:20pm',
+    name: 'Sky Bet Supreme Novices\' Hurdle',
+    meta: 'Grade 1 · 2m 87y · Old Course · 12 declared',
+    confidence: 'medium',
+    desc: 'The curtain raiser. 12 declared — down from 20 entries. Nicky Henderson seeks a 6th win. Strong pace expected with Sober Glory likely to lead. Model favours progressive unexposed types over exposed form horses.',
+    trends: [
+      '11/12 winners aged 5-6',
+      '10/12 winners won their last race',
+      '5/12 from Leopardstown trial',
+      'Mullins has won 8 of last 14',
+      'Henderson 5 wins — strong record',
+      '8/12 winners at 7/1 or shorter'
+    ],
+    horses: [
+      { name:'Old Park Star', odds:'5/2', score:81, gp:'G-GS', gpClass:'good', trainer:'N Henderson', jockey:'N de Boinville', form:'111', or:'—',
+        pros:['3-3 over hurdles, won by 12l & 18l','Strong traveller, Cheltenham C&D winner','Henderson 6th Supreme attempt — serious intent'],
+        cons:['All wins on Good to Soft — needs ground to stay','Not raced since Haydock (Jan) — freshness risk'] },
+      { name:'Talk The Talk', odds:'4/1', score:79, gp:'GS-S', gpClass:'ok', trainer:'J O\'Brien', jockey:'M Walsh', form:'111', or:'—',
+        pros:['DRF winner — strong Irish trial form','Joseph O\'Brien back-to-back Fred Winter wins shows Festival pedigree','All 3 wins at 2m, proven trip'],
+        cons:['Ground may be quicker than ideal (prefers Soft)','DRF form not always translating to Supreme'] },
+      { name:'Mydaddypaddy', odds:'7/1', score:77, gp:'G-GS', gpClass:'good', trainer:'G Elliott', jockey:'J Kennedy', form:'F21', or:'—', nap: true,
+        pros:['Fell when travelling strongly at Leopardstown — big engine','Kennedy booking = top Irish jockey = intent signal','Ground ideal — acts on Good to Soft','Racing Post verdict selection'],
+        cons:['Fell last time — jumping a concern','Needs to prove he can finish a race at this level'] },
+      { name:'Mighty Park', odds:'10/3', score:76, gp:'GS-S', gpClass:'ok', trainer:'W Mullins', jockey:'P Townend', form:'114', or:'—',
+        pros:['Mullins/Townend = #1 Festival combo','Plenty of scope for improvement'],
+        cons:['Only 4th last time at Leopardstown — beaten 9l','Ground may be quick enough for this type'] },
+      { name:'El Cairos', odds:'7/1', score:75, gp:'GS', gpClass:'good', trainer:'W Mullins', jockey:'H Cobden', form:'11', or:'—',
+        pros:['Won both hurdle starts comfortably','Mullins second string — often win at bigger prices'],
+        cons:['Lightly raced — stamina for Festival pace untested','Cobden (not Townend) suggests not yard\'s first pick'] },
+      { name:'Leader d\'Allier', odds:'9/1', score:72, gp:'G-GS', gpClass:'good', trainer:'W Mullins', jockey:'D Mullins', form:'13', or:'—',
+        pros:['Ex-French — different form line to assess','Ground suits well','Mullins third string at value price'],
+        cons:['3rd in a Grade 1 — needs to find 5l+','Third-string jockey booking'] },
+      { name:'Sober Glory', odds:'14/1', score:70, gp:'G-GS', gpClass:'good', trainer:'G Elliott', jockey:'D O\'Keeffe', form:'15', or:'—',
+        pros:['Likely front-runner — could set up for himself','Champion Bumper 5th here last year — knows track'],
+        cons:['5th in bumper suggests not top-tier','Needs to lead — tactical risk in a strong-pace Supreme'] },
+      { name:'Baron Noir', odds:'20/1', score:66, gp:'GS', gpClass:'good', trainer:'P Nicholls', jockey:'H Cobden', form:'221', or:'—',
+        pros:['Won last time — improving','Paul Nicholls Festival veteran'],
+        cons:['Form a level below these — needs big step up','20/1 for a reason'] },
+    ]
+  },
+  {
+    id: 'arkle',
+    num: 'Race 2 · 2:00pm',
+    name: 'Singer Arkle Challenge Trophy',
+    meta: 'Grade 1 · 1m 7f 199y · Old Course · 7 declared',
+    confidence: 'high',
+    desc: 'Only 7 declared after Romeo Coolio, Kappa Jy Pyke and Irish Panther were all withdrawn. The showdown between Lulamba (5★ Timeform) and Kopek Des Bordes (2025 Supreme winner) is THE clash of the meeting. Small field = reliability for the model.',
+    trends: [
+      '11/12 winners aged 6-7',
+      '8/12 favourites won (strongest fav record at the Festival)',
+      '9/12 rated 153+',
+      '4/12 from Irish Arkle trial',
+      'Only 7 runners — small field favours class'
+    ],
+    horses: [
+      { name:'Lulamba', odds:'6/4', score:86, gp:'G-GS', gpClass:'good', trainer:'W Mullins', jockey:'P Townend', form:'111', or:'163',
+        pros:['5★ Timeform — highest-rated novice chaser in training','3-3 over fences, won Arkle trial by 11l','Townend rides — Mullins #1 jockey','Ground ideal — all wins on Good to Soft'],
+        cons:['Has to handle Cheltenham hill for first time','Short price — if beaten, you lose a lot'] },
+      { name:'Kopek Des Bordes', odds:'6/4', score:84, gp:'GS-S', gpClass:'ok', trainer:'W Mullins', jockey:'H Cobden', form:'111', or:'160',
+        pros:['Won 2025 Supreme HERE — knows the track','3-3 over fences including Grade 1','Festival experience is a proven advantage'],
+        cons:['Cobden over Townend = second string to Lulamba','Prefers slightly softer ground — may be quick enough'] },
+      { name:'Kargese', odds:'4/1', score:74, gp:'GS', gpClass:'good', trainer:'W Mullins', jockey:'D Mullins', form:'112', or:'151',
+        pros:['Mare gets 7lb sex allowance — effectively well-in','Mullins third string — often the value play','Ground suits'],
+        cons:['2nd last time — beaten by Lulamba','Needs the big two to flop — unlikely in 7-runner field'] },
+      { name:'Steel Ally', odds:'16/1', score:65, gp:'G', gpClass:'good', trainer:'D Skelton', jockey:'H Skelton', form:'111', or:'148',
+        pros:['Unbeaten over fences','Skelton in flying form this season'],
+        cons:['All wins in lower grade — huge step up','16/1 reflects the class gap'] },
+    ]
+  },
+  {
+    id: 'fredwinter',
+    num: 'Race 3 · 2:40pm',
+    name: 'McCoy Contractors Juvenile Handicap Hurdle (Fred Winter)',
+    meta: 'Premier Handicap · 2m 87y · Old Course · 22 declared',
+    confidence: 'low',
+    desc: 'The Fred Winter is one of the hardest races of the Festival to predict. 22 declared. Only 1 favourite has won in 13 years. Irish-trained won last 8. Joseph O\'Brien has won last 2. MODEL ADJUSTMENT: Favourite fatigue penalty applied — longer-priced picks promoted after Warwick/Taunton calibration showed 3/3 handicap favourites beaten.',
+    trends: [
+      'Only 1 favourite won in 13 years',
+      '8/13 winners at 10/1+',
+      'Irish-trained won last 8 renewals',
+      'Joseph O\'Brien won last 2 (Puturhandstogether 2025, Brazil 2022)',
+      'Mullins is 0-25 in this race',
+      'Winners often lightly raced (2-3 starts)'
+    ],
+    horses: [
+      { name:'Winston Junior', odds:'11/2', score:76, gp:'GS', gpClass:'good', trainer:'D Skelton', jockey:'H Skelton', form:'31', or:'130',
+        pros:['Wind/gelding op since French career — likely improved','Ran on promisingly 3rd at Haydock last time','Skelton strong Festival record','Hood + tongue-tie = freshness aids'],
+        cons:['Favourite fatigue: 11/2 fav in a race where only 1/13 favs have won','UK-trained — Irish won last 8','Only 1 UK run — thin form to assess'] },
+      { name:'Saratoga', odds:'4/1', score:74, gp:'G', gpClass:'good', trainer:'D Skelton', jockey:'B Poste', form:'61', or:'131', 
+        pros:['Beaten by Triumph contender Minella Study — franked form','Saved for this since October — deliberate planning','Good ground preference suits'],
+        cons:['MAJOR: Favourite fatigue penalty — 4/1 in race where favs don\'t win','UK-trained — Irish won last 8','AW pipe-opener — not ideal prep'] },
+      { name:'Manlaga', odds:'7/1', score:75, gp:'GS-S', gpClass:'ok', trainer:'J O\'Brien', jockey:'M Walsh', form:'1', or:'128',
+        pros:['Joseph O\'Brien — won last 2 Fred Winters','Walsh rides — top Festival jockey','Won on debut — could be anything'],
+        cons:['Only 1 run — very hard to assess','7/1 getting short for a Fred Winter'] },
+      { name:'Glen to Glen', odds:'8/1', score:74, gp:'GS', gpClass:'good', trainer:'G Elliott', jockey:'J Kennedy', form:'211', or:'127', nap: true,
+        pros:['Irish-trained (8/8 recent winners are Irish)','Elliott/Kennedy = top connections signal','Won last time — progressive','8/1 is the sweet spot for Fred Winter winners (8/13 at 10/1+)'],
+        cons:['Needs to handle Festival hustle on first trip to UK','Not an O\'Brien runner (O\'Brien won last 2)'] },
+      { name:'Ammes', odds:'8/1', score:73, gp:'GS', gpClass:'good', trainer:'J O\'Brien', jockey:'D O\'Keeffe', form:'11', or:'126',
+        pros:['Joseph O\'Brien second string — O\'Brien won last 2','Irish-trained','Won both starts — unexposed'],
+        cons:['Second jockey, not Walsh','Ground may be quick enough'] },
+      { name:'Munsif', odds:'8/1', score:72, gp:'GS-S', gpClass:'ok', trainer:'C Byrnes', jockey:'D Mullins', form:'11', or:'129',
+        pros:['Well-backed throughout — strong market confidence','Irish-trained','Won both starts'],
+        cons:['1st reserve — needs a withdrawal to get a run','May not even make the final field'] },
+      { name:'Bertutea', odds:'12/1', score:71, gp:'S', gpClass:'ok', trainer:'W Mullins', jockey:'—', form:'21', or:'124',
+        pros:['Mullins runner — but note: Mullins 0-25 in this race','12/1 is value range for Fred Winter'],
+        cons:['Mullins 0-25 in the Fred Winter — dismal record','Prefers Soft — ground may be too quick'] },
+      { name:'Dignam', odds:'16/1', score:70, gp:'GS', gpClass:'good', trainer:'D Skelton', jockey:'—', form:'13', or:'121',
+        pros:['16/1 is prime Fred Winter winner territory','Ground suits','Skelton\'s 3rd runner — often sends a dark horse'],
+        cons:['3rd last time — form needs to improve','Long price for a reason'] },
+    ]
+  },
+  {
+    id: 'ultima',
+    num: 'Race 4 · 3:20pm',
+    name: 'Trustmarque Ultima Handicap Chase',
+    meta: 'Premier Handicap · 3m 1f · Old Course · ~18 declared',
+    confidence: 'low',
+    desc: 'Staying handicap chase over 3m1f. The model\'s handicap recalibration is critical here — favourite fatigue penalty increased, longer-priced picks promoted. Last year\'s winner Myretown returns but is 10/1 this time. Iroko tops the weights under 12st.',
+    trends: [
+      '12/12 UK-trained winners in last 12 years',
+      '10/12 aged 7-9',
+      '11/12 had Cheltenham course experience',
+      '10/12 rated 139-148',
+      'Fav record: only 3/12 favs have won'
+    ],
+    horses: [
+      { name:'Jagwar', odds:'4/1', score:75, gp:'G-GS', gpClass:'good', trainer:'O Greenall & J Guerriero', jockey:'J O\'Neill Jr', form:'11P', or:'144',
+        pros:['Won this exact race last year — proven C&D','Won the Plate too — two Festival wins','Connections know the horse and the track'],
+        cons:['FAVOURITE FATIGUE: 4/1 in a handicap — model penalises -5','Pulled up last time — fitness query','Higher mark than last year'] },
+      { name:'Iroko', odds:'6/1', score:76, gp:'GS', gpClass:'good', trainer:'N Henderson', jockey:'N de Boinville', form:'132', or:'148',
+        pros:['Top weight but top jockey — de Boinville intent signal','Henderson strong Ultima record','Cheltenham experience','Ground suits well'],
+        cons:['Top weight at 12st — carrying a burden','6/1 still relatively short for Ultima'] },
+      { name:'Handstands', odds:'7/1', score:77, gp:'G-GS', gpClass:'good', trainer:'N Henderson', jockey:'—', form:'112', or:'143', nap:true,
+        pros:['Henderson second string — often the value play (like Knight Templar at Taunton)','Ground ideal','7/1 hits the model\'s sweet spot for handicap winners','Cheltenham form — has run here before'],
+        cons:['Second jockey — not de Boinville','Needs to prove stamina for 3m1f'] },
+      { name:'Quebecois', odds:'12/1', score:75, gp:'GS', gpClass:'good', trainer:'B Pauling', jockey:'—', form:'211', or:'140',
+        pros:['12/1 is prime Ultima territory (5/12 winners at 10/1+)','UK-trained — all 12 recent winners UK-trained','Progressive — won last time'],
+        cons:['First Festival run — no Cheltenham experience','Pauling not a big Festival trainer'] },
+      { name:'Myretown', odds:'10/1', score:74, gp:'GS-S', gpClass:'ok', trainer:'L Russell', jockey:'P Wadge', form:'312', or:'146',
+        pros:['Won THIS race last year — knows every blade of grass','Scottish trainer = often overlooked','10/1 is value for a proven winner'],
+        cons:['Higher mark — 146 vs 140 last year','Form this season (312) not as strong','Ground may be quicker than ideal'] },
+      { name:'Konfusion', odds:'16/1', score:72, gp:'G', gpClass:'good', trainer:'P Nicholls', jockey:'—', form:'121', or:'138',
+        pros:['16/1 is the right range — patient trainer','Good ground suits','Within the rating band (139-148 trend)'],
+        cons:['Limited Cheltenham experience','Nicholls quiet this season at the track'] },
+    ]
+  },
+  {
+    id: 'championhurdle',
+    num: 'Race 5 · 4:00pm',
+    name: 'Unibet Champion Hurdle',
+    meta: 'Grade 1 · 2m 87y · Old Course · 9 declared',
+    confidence: 'high',
+    desc: 'THE race of the day. 9 declared — biggest field since 2022. Lossiemouth confirmed in cheekpieces (first time) — she displaces The New Lion as favourite at 2/1. She\'s unbeaten in 3 Festival visits (Triumph 2023, Mares\' Hurdle 2024+2025). The New Lion out to 9/4. Golden Ace (last year\'s shock 25/1 winner) returns at 8/1. NON-HANDICAP = model\'s strongest area (Mecene, Wilstar, Irish Chorus all won).',
+    trends: [
+      '11/12 winners aged 6-8',
+      '11/12 winners won their last race',
+      'SP favourite wins 52% of the time',
+      '4/12 from Irish Champion Hurdle',
+      'Mullins has won 4 of last 12',
+      'Mares have a strong recent record (Annie Power 2016, Honeysuckle 2021-22)'
+    ],
+    horses: [
+      { name:'Lossiemouth', odds:'2/1', score:88, gp:'G-GS', gpClass:'good', trainer:'W Mullins', jockey:'P Townend', form:'111', or:'170',
+        pros:['Unbeaten at Cheltenham (3/3: Triumph + 2x Mares\' Hurdle)','Townend — #1 Festival jockey','7lb sex allowance — effectively well-in at the weights','Mullins switched from Mares\' Hurdle = believes she can win this','Cheekpieces first time — could sharpen her up'],
+        cons:['First time against open company (previously mares-only)','Cheekpieces = unknown — could help or hinder','2m may be minimum trip — speed test'] },
+      { name:'The New Lion', odds:'9/4', score:85, gp:'G-GS', gpClass:'good', trainer:'D Skelton', jockey:'H Skelton', form:'11111', or:'167',
+        pros:['5-1 over hurdles — unbeaten','Won Novices\' Hurdle here last year — knows the track','Skelton in career-best form','Ground ideal — all wins on Good to Soft'],
+        cons:['Unproven at championship level vs older horses','Never raced against a mare of Lossiemouth\'s calibre','Drifting in the market — 15/8 to 9/4'] },
+      { name:'Brighterdaysahead', odds:'9/2', score:78, gp:'GS-S', gpClass:'ok', trainer:'G Elliott', jockey:'J Kennedy', form:'121', or:'165',
+        pros:['Elliott/Kennedy top combo','Won a Grade 1 this season — class proven','4th here last year — experience helps'],
+        cons:['Beaten last time — not in best form','Ground may be too quick (prefers softer)','9/2 is short for a horse going the wrong way'] },
+      { name:'Golden Ace', odds:'8/1', score:76, gp:'GS-S', gpClass:'ok', trainer:'J Scott', jockey:'L Williams', form:'121', or:'163', nap:true,
+        pros:['WON THIS RACE LAST YEAR at 25/1 — C&D proven','Williams gave a great ride last year — same partnership','8/1 is VALUE for the defending champion','Thrives when overlooked — fits the model\'s "longer price in big races" edge'],
+        cons:['Benefited from State Man\'s fall last year','Form this season mixed (121)','Small trainer — may not have same improvement as big yards'] },
+      { name:'Poniros', odds:'14/1', score:72, gp:'GS', gpClass:'good', trainer:'W Mullins', jockey:'D Mullins', form:'112', or:'160',
+        pros:['Mullins second string — won Triumph last year','Young horse still improving','14/1 is generous for Mullins-trained'],
+        cons:['2nd last time — form going wrong way','Up against stablemate Lossiemouth — yard priority is elsewhere'] },
+      { name:'Tutti Quanti', odds:'20/1', score:68, gp:'GS', gpClass:'good', trainer:'P Nicholls', jockey:'H Cobden', form:'211', or:'158',
+        pros:['Supplemented at £18,000 — connections must believe','Nicholls/Cobden combination','Won last time'],
+        cons:['Supplementary entry often signals hope over expectation','20/1 reflects clear class gap'] },
+    ]
+  },
+  {
+    id: 'plate',
+    num: 'Race 6 · 4:40pm',
+    name: 'Sun Racing Plate Handicap Chase',
+    meta: 'Premier Handicap · 2m 4f 44y · Old Course · ~18 declared',
+    confidence: 'medium',
+    desc: 'The Plate is a 2m4f handicap chase. Last year\'s winner Jagwar is the 4/1 favourite but runs in the Ultima instead, so the field is wide open. McLaurey and Madara head the market at 4/1 joint-favourites. MODEL ADJUSTMENT: Handicap favourite fatigue penalty applied.',
+    trends: [
+      '12/12 UK-trained winners',
+      '10/12 rated 139-145',
+      '9/12 had Cheltenham course experience',
+      '7/12 winners at 8/1+',
+      'Jagwar won at 4/1 last year — but favs have poor overall record'
+    ],
+    horses: [
+      { name:'Down Memory Lane', odds:'10/1', score:78, gp:'G-GS', gpClass:'good', trainer:'H de Bromhead', jockey:'R Blackmore', form:'112', or:'142', nap:true,
+        pros:['Blackmore booking = THE intent signal — top jockey on a 10/1 shot','Within the rating band (139-145)','de Bromhead/Blackmore won Gold Cup together — top combo','10/1 is prime Plate territory (7/12 at 8/1+)'],
+        cons:['Irish-trained — but UK-trained won 12/12 — GOES AGAINST TREND','First Cheltenham run — no course experience'] },
+      { name:'Mclaurey', odds:'4/1', score:75, gp:'GS', gpClass:'good', trainer:'O Greenall & J Guerriero', jockey:'J O\'Neill Jr', form:'211', or:'144',
+        pros:['UK-trained — matches 12/12 trend','Same connections as Jagwar (Plate winner 2025)','Within rating band','Won last time'],
+        cons:['FAVOURITE FATIGUE: 4/1 joint-fav — model penalises -5','Same connections as Jagwar doesn\'t guarantee repeat'] },
+      { name:'Madara', odds:'4/1', score:74, gp:'GS-S', gpClass:'ok', trainer:'W Mullins', jockey:'P Townend', form:'113', or:'143',
+        pros:['Mullins/Townend — top Festival combo','Within rating band','Ground ok — handles Good to Soft'],
+        cons:['FAVOURITE FATIGUE: 4/1 joint-fav — model penalises -5','3rd last time — form going wrong way','Irish-trained — UK won 12/12'] },
+      { name:'Booster Bob', odds:'14/1', score:76, gp:'G-GS', gpClass:'good', trainer:'N Henderson', jockey:'—', form:'121', or:'141',
+        pros:['Henderson — top Festival trainer','14/1 hits the prime Plate winner range','UK-trained — matches the 12/12 trend','Ground ideal — Good to Soft form'],
+        cons:['Second jockey — not de Boinville','Beaten last time'] },
+      { name:'Will The Wise', odds:'12/1', score:75, gp:'GS', gpClass:'good', trainer:'H de Bromhead', jockey:'—', form:'112', or:'140',
+        pros:['Within rating band','12/1 = value range','Good to Soft form'],
+        cons:['Irish-trained — trend against','de Bromhead not strong in Plate historically'] },
+      { name:'Downmexicoway', odds:'12/1', score:73, gp:'G', gpClass:'good', trainer:'D Skelton', jockey:'B Poste', form:'211', or:'139',
+        pros:['UK-trained — matches trend','Skelton in flying form','Bottom of the rating band = potentially well-handicapped'],
+        cons:['Good ground — may be too quick','Not first jockey'] },
+    ]
+  },
+  {
+    id: 'nhchase',
+    num: 'Race 7 · 5:20pm',
+    name: 'National Hunt Challenge Cup',
+    meta: 'Class 2 Novice Handicap Chase · 3m 5f 201y · Old Course · ~18 declared',
+    confidence: 'low',
+    desc: 'The card closer. Marathon 3m6f novice handicap chase. Previously amateur jockeys only — now open to professionals. Backmersackme is 7/2 favourite for Emmet Mullins. Irish-trained have dominated (9/13 winners). MODEL: Low confidence — stamina test + novice chasers = unpredictable.',
+    trends: [
+      '9/13 Irish-trained winners',
+      'Mullins & Elliott won 7/13',
+      'Only 2/12 favourites won',
+      'Winners often 8/1-14/1 range',
+      'Stamina is the key — needs a proven 3m+ stayer'
+    ],
+    horses: [
+      { name:'Backmersackme', odds:'7/2', score:76, gp:'GS-S', gpClass:'ok', trainer:'E Mullins', jockey:'—', form:'111', or:'140',
+        pros:['Emmet Mullins trained 2023 Grand National winner — big race pedigree','Irish-trained — matches 9/13 trend','Unbeaten over fences'],
+        cons:['FAVOURITE FATIGUE: 7/2 in a race where only 2/12 favs win','Emmet Mullins not yet Willie or Danny — smaller operation'] },
+      { name:'Newton Tornado', odds:'7/1', score:77, gp:'G-GS', gpClass:'good', trainer:'R Curtis', jockey:'S Flanagan', form:'111', or:'137', nap:true,
+        pros:['Rebecca Curtis trained Haiti Couleurs (2025 NH Chase winner) — same race, same trainer!','Flanagan booking = serious intent','7/1 is the model\'s sweet spot for this race','Ground ideal — Good to Soft suits'],
+        cons:['Not as exposed as Backmersackme','First Festival trip'] },
+      { name:'Wade Out', odds:'8/1', score:74, gp:'G-GS', gpClass:'good', trainer:'W Mullins', jockey:'P Townend', form:'112', or:'145',
+        pros:['Top weight — highest-rated in the field','Mullins/Townend — ultimate combo','Irish-trained — matches trend'],
+        cons:['Top weight over 3m6f — carries most weight the furthest','2nd last time — not winning'] },
+      { name:'One Big Bang', odds:'10/1', score:73, gp:'GS', gpClass:'good', trainer:'G Elliott', jockey:'J Kennedy', form:'121', or:'138',
+        pros:['Elliott/Kennedy — top Festival connections','Irish-trained','10/1 is prime NH Chase territory'],
+        cons:['Beaten last time','Step up in trip — stamina untested over 3m6f'] },
+      { name:'Pic Roc', odds:'12/1', score:72, gp:'GS', gpClass:'good', trainer:'W Mullins', jockey:'D Mullins', form:'211', or:'136',
+        pros:['Mullins second string — value angle','Irish-trained','Won last time'],
+        cons:['Third-choice jockey','Form a level below the top picks'] },
+      { name:'Iceberg Theory', odds:'12/1', score:71, gp:'G-GS', gpClass:'good', trainer:'N Henderson', jockey:'—', form:'112', or:'135',
+        pros:['Henderson — UK-trained but still competitive here','12/1 is value range','Ground suits'],
+        cons:['UK-trained — 9/13 winners Irish','Henderson not strong in this race'] },
+    ]
+  }
+];
+
+let currentSort = 'score';
+let showTrends = true;
+let showFactors = true;
+let currentRace = 0;
+
+function setSort(s) {
+  currentSort = s;
+  document.querySelectorAll('.controls button').forEach((b,i) => {
+    if(i < 2) b.classList.toggle('active', (i===0 && s==='score') || (i===1 && s==='odds'));
+  });
+  renderRace();
+}
+
+function toggleTrends() {
+  showTrends = !showTrends;
+  document.querySelectorAll('.controls button')[2].classList.toggle('active', showTrends);
+  renderRace();
+}
+
+function toggleFactors() {
+  showFactors = !showFactors;
+  document.querySelectorAll('.controls button')[3].classList.toggle('active', showFactors);
+  renderRace();
+}
+
+function oddsToDecimal(o) {
+  const p = o.split('/');
+  return p.length === 2 ? (parseInt(p[0])/parseInt(p[1])) + 1 : parseFloat(o);
+}
+
+function renderNav() {
+  const nav = document.getElementById('raceNav');
+  nav.innerHTML = RACES.map((r,i) => 
+    `<button class="${i===currentRace?'active':''}" onclick="selectRace(${i})">${r.id==='championhurdle'?'Champion Hurdle':r.id==='fredwinter'?'Fred Winter':r.id==='nhchase'?'NH Chase':r.name.split(' ').slice(-1)[0]}</button>`
+  ).join('');
+}
+
+function selectRace(i) {
+  currentRace = i;
+  renderNav();
+  renderRace();
+  document.getElementById('raceContent').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function renderRace() {
+  const race = RACES[currentRace];
+  let horses = [...race.horses];
+  
+  if(currentSort === 'odds') {
+    horses.sort((a,b) => oddsToDecimal(a.odds) - oddsToDecimal(b.odds));
+  } else {
+    horses.sort((a,b) => b.score - a.score);
+  }
+
+  const confClass = race.confidence;
+  const confLabel = race.confidence.toUpperCase();
+
+  let html = `
+    <div class="race-header">
+      <div class="race-num">${race.num}</div>
+      <h2>${race.name} <span class="confidence ${confClass}">${confLabel}</span></h2>
+      <div class="race-meta">${race.meta}</div>
+      <div class="race-desc">${race.desc}</div>
+    </div>
+  `;
+
+  if(showTrends) {
+    html += `<div class="trends-panel"><h3>Key Trends</h3><ul>${race.trends.map(t=>`<li>${t}</li>`).join('')}</ul></div>`;
+  }
+
+  horses.forEach((h, idx) => {
+    const rankClass = idx < 3 ? `top${idx+1}` : '';
+    const rankNumClass = idx === 0 ? 'r1' : idx === 1 ? 'r2' : idx === 2 ? 'r3' : '';
+    
+    html += `
+      <div class="horse-card ${rankClass}">
+        <div class="horse-row">
+          <div class="horse-rank ${rankNumClass}">${idx+1}</div>
+          <div class="horse-info">
+            <div class="horse-name">${h.name} ${h.nap ? '<span class="nap-badge">NAP</span>' : ''}</div>
+            <div class="horse-details">${h.trainer} · ${h.jockey} · Form: ${h.form}${h.or !== '—' ? ` · OR: ${h.or}` : ''}</div>
+          </div>
+          <div class="horse-metrics">
+            <span class="metric-pill score">${h.score}</span>
+            <span class="metric-pill odds">${h.odds}</span>
+            <span class="metric-pill gp ${h.gpClass}">${h.gp}</span>
+          </div>
+        </div>
+        ${showFactors ? `
+        <div class="horse-factors">
+          ${(h.pros||[]).map(p => `<div class="factor pro"><span class="icon">✓</span> ${p}</div>`).join('')}
+          ${(h.cons||[]).map(c => `<div class="factor con"><span class="icon">✗</span> ${c}</div>`).join('')}
+        </div>` : ''}
+      </div>
+    `;
+  });
+
+  document.getElementById('raceContent').innerHTML = html;
+}
+
+// Init
+renderNav();
+document.querySelectorAll('.controls button')[2].classList.add('active');
+document.querySelectorAll('.controls button')[3].classList.add('active');
+renderRace();
+</script>
+</body>
+</html>
